@@ -2,20 +2,17 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import time
 
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import time
-
 class InferenceEngine:
     def __init__(self):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         self.tokenizer = AutoTokenizer.from_pretrained("NumbersStation/nsql-llama-2-7B")
-        self.model = AutoModelForCausalLM.from_pretrained("NumbersStation/nsql-llama-2-7B", torch_dtype=torch.bfloat16)
+        self.model = AutoModelForCausalLM.from_pretrained("NumbersStation/nsql-llama-2-7B", torch_dtype=torch.bfloat16).to(self.device)
 
     def generate_text(self, input_text, max_len=500):
-        input_ids = self.tokenizer(input_text, return_tensors="pt").input_ids
+        input_ids = self.tokenizer(input_text, return_tensors="pt").input_ids.to(self.device)
         generated_ids = self.model.generate(input_ids, max_length=max_len)
         return self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-
 
 if __name__ == "__main__":
     engine = InferenceEngine()
